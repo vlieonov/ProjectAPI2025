@@ -3,14 +3,11 @@ package com.vlieonov.projectapi.api.controller;
 import com.vlieonov.projectapi.api.model.User;
 import com.vlieonov.projectapi.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Optional;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
+@RequestMapping("/user")
 public class UserController {
     private UserService userService;
 
@@ -19,13 +16,24 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/user")
-    public User getUser(@RequestParam Integer id) {
-    Optional<User> user = userService.getUser(id);
-    if(user.isPresent()) {
-    return (User) user.get();
+    @GetMapping("{id}")
+    public User getUser(@PathVariable("id") String id) {
+        return userService.getUser(id);
     }
-    return null;
+    @PostMapping
+    public String createUser(@RequestBody User user) {
+        userService.createUser(user);
+        return "User created";
+    }
+    @PutMapping
+    public String updateUser(@RequestBody User user) {
+        userService.updateUser(user);
+        return "User updated";
+    }
+    @DeleteMapping("{id}")
+    public String deleteUser(@PathVariable("id") String id) {
+        userService.deleteUser(id);
+        return "User deleted";
     }
 }
 
