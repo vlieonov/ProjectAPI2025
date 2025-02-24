@@ -16,6 +16,10 @@ public class UserController {
         this.userService = userService;
     }
 
+    @PostMapping("/login")
+    public String login(@RequestBody User user) {
+        return userService.verify(user);
+    }
     @GetMapping("{id}")
     public User getUser(@PathVariable("id") int id) {
         return userService.getUser(id);

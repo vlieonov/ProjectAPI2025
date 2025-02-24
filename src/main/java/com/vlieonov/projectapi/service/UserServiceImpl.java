@@ -1,21 +1,28 @@
 package com.vlieonov.projectapi.service;
 
 import com.vlieonov.projectapi.api.model.User;
-import com.vlieonov.projectapi.api.secure.UserPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
 
 @Service
-public class UserServiceImpl implements UserService, UserDetailsService {
+public class UserServiceImpl implements UserService{
+    private final AuthenticationManager authManager;
     UserRepository userRepository;
+    @Autowired
+    private JWTService jwtService;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+
+    public UserServiceImpl(UserRepository userRepository, AuthenticationManager authManager) {
         this.userRepository = userRepository;
+        this.authManager = authManager;
     }
 
     @Override
@@ -25,11 +32,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                 .orElseThrow(() -> new NoSuchElementException("User not found with id: " + id));
     }
 
-
     @Override
     public String createUser(User user) {
+        user.setPassword(encoder.encode(user.getPassword()));
         userRepository.save(user);
-        return "1";
+        return "User created";
     }
 
     @Override
@@ -45,12 +52,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            System.out.println("User not found");
-            throw new UsernameNotFoundException("User not found");
-        }
-        return new UserPrincipal(user);
+    public String verify(User user) {
+        Authentication auth = authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(user.getName(), user.getPassword()));
+        if (auth.isAuthenticated()) return jwtService.generateToken(user.getName());
+        else return "Failure";
     }
 }
