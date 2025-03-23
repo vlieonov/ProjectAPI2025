@@ -8,3 +8,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+
+resilience4j.ratelimiter:
+  instances:
+    loginRateLimiter:
+      limitForPeriod: 5
+      limitRefreshPeriod: 180s
+      timeoutDuration: 0
+      registerHealthIndicator: true
+      eventConsumerBufferSize: 100

@@ -1,5 +1,6 @@
 package com.vlieonov.projectapi.service;
 
+import com.vlieonov.projectapi.api.model.GetUserInfo;
 import com.vlieonov.projectapi.api.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,9 +28,10 @@ public class UserServiceImpl implements UserService{
 
     @Override
     @Transactional(readOnly = true)
-    public User getUser(int id) {
-        return userRepository.findById(id)
+    public GetUserInfo getUser(int id) {
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found with id: " + id));
+        return new GetUserInfo(user.getId(), user.getName(), user.getEmail());
     }
 
     @Override
