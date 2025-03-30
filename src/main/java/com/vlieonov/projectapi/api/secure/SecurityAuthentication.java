@@ -41,7 +41,7 @@ public class SecurityAuthentication{
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/user/login", "/user/register").permitAll()
-                        .anyRequest().authenticated())
+                        .anyRequest().hasRole("ADMIN"))
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

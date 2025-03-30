@@ -31,11 +31,12 @@ public class UserServiceImpl implements UserService{
     public GetUserInfo getUser(int id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found with id: " + id));
-        return new GetUserInfo(user.getId(), user.getName(), user.getEmail());
+        return new GetUserInfo(user.getId(), user.getName(), user.getRole(), user.getEmail());
     }
 
     @Override
     public String createUser(User user) {
+        user.setRole("USER");
         user.setPassword(encoder.encode(user.getPassword()));
         userRepository.save(user);
         return "User created";
@@ -57,7 +58,7 @@ public class UserServiceImpl implements UserService{
     public String verify(User user) {
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(user.getName(), user.getPassword()));
-        if (auth.isAuthenticated()) return jwtService.generateToken(user.getName());
+        if (auth.isAuthenticated()) return jwtService.generateToken(user.getName(), user.getRole());
         else return "Failure";
     }
 }

@@ -1,5 +1,4 @@
 package com.vlieonov.projectapi.service;
-import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Date;
@@ -13,7 +12,6 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
@@ -27,7 +25,7 @@ public class JWTService {
         secretKey = Base64.getEncoder().encodeToString(sk.getEncoded());
     }
 
-    public String generateToken(String user) {
+    public String generateToken(String user, String role) {
         Map<String, Object> claims = new HashMap<>();
         return Jwts.builder()
                 .claims()

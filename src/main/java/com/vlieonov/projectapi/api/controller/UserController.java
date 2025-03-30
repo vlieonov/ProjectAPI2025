@@ -54,17 +54,5 @@ public class UserController {
         String encodedComment = Encode.forHtmlUnquotedAttribute(comment);
         return "Your comment: " + encodedComment;
     }
-
-   /* @GetMapping("/test")
-    public String testResturn() {
-        //return a execution script if spring security configuration is disable
-        return """
-      {
-    "id": 1,
-    "name": "<input type="text" value="test" onfocus="alert('XSS')" />
-                         "
-    }
-      """;
-    }*/
 }
 
