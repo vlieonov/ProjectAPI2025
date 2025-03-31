@@ -1,5 +1,6 @@
-package com.vlieonov.projectapi.api.model;
+package com.vlieonov.projectapi.api.dto;
 
+import com.vlieonov.projectapi.api.model.Role;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 

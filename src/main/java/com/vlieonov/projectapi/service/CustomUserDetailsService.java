@@ -2,6 +2,7 @@ package com.vlieonov.projectapi.service;
 
 import com.vlieonov.projectapi.api.model.User;
 import com.vlieonov.projectapi.api.secure.UserPrincipal;
+import com.vlieonov.projectapi.api.repo.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

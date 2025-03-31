@@ -1,9 +1,14 @@
 package com.vlieonov.projectapi.service;
 
-import com.vlieonov.projectapi.api.model.GetUserInfo;
+import com.vlieonov.projectapi.api.dto.GetUserInfo;
+import com.vlieonov.projectapi.api.dto.JwtResponse;
+import com.vlieonov.projectapi.api.model.RefreshToken;
 import com.vlieonov.projectapi.api.model.User;
+import com.vlieonov.projectapi.api.repo.RefreshTokenRepository;
+import com.vlieonov.projectapi.api.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -11,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService{
@@ -19,7 +25,12 @@ public class UserServiceImpl implements UserService{
     @Autowired
     private JWTService jwtService;
 
+    @Autowired
+    private RefreshTokenService refreshTokenService;
+
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
     public UserServiceImpl(UserRepository userRepository, AuthenticationManager authManager) {
         this.userRepository = userRepository;
@@ -53,12 +64,36 @@ public class UserServiceImpl implements UserService{
         userRepository.deleteById(id);
         return "1";
     }
-
     @Override
-    public String verify(User user) {
+    public JwtResponse verify(User user) {
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(user.getName(), user.getPassword()));
-        if (auth.isAuthenticated()) return jwtService.generateToken(user.getName(), user.getRole());
-        else return "Failure";
+        if (auth.isAuthenticated()){
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getName());
+            return JwtResponse.builder()
+                    .accessToken(jwtService.generateToken(user.getName()))
+                    .token(refreshToken.getToken())
+                    .build();
+        }
+        else throw new BadCredentialsException("Invalid username or password");
     }
+
+    @Override
+    public JwtResponse refresh(RefreshToken refreshToken) {
+        RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken.getToken())
+                .orElseThrow(() -> new BadCredentialsException("Invalid refresh token"));
+
+        refreshTokenService.IsExpired(storedToken);
+
+        User user = storedToken.getUser();
+        if (user == null) {
+            throw new BadCredentialsException("User not found for this token");
+        }
+
+        return JwtResponse.builder()
+                .accessToken(jwtService.generateToken(user.getName()))
+                .token(refreshToken.getToken())
+                .build();
+    }
+
 }
