@@ -36,12 +36,28 @@ public class SecurityAuthentication{
                 .headers(headers -> headers
                         .xssProtection(
                                 xss -> xss.headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK))
-                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'none';")))
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'none'; frame-ancestors 'none'; form-action 'self';"))
+                        .contentTypeOptions(Customizer.withDefaults())
+                        .frameOptions(frame -> frame.sameOrigin())
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000))
+                        .permissionsPolicyHeader(policy -> policy
+                                .policy("geolocation=(), microphone=(), camera=()"))
+                        .cacheControl(Customizer.withDefaults())
+                )
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/user/login", "/user/register", "/user/refreshToken").permitAll()
-                        .anyRequest().hasRole("ADMIN"))
-                .httpBasic(Customizer.withDefaults())
+                        .requestMatchers("/user/profile", "/user/comment", "/user/logout", "/user/updatePassword")
+                        .hasAnyRole("USER", "ADMIN")
+                               // .requestMatchers("/cgi-bin/**", "/**/*.php", "/**/*.exe").denyAll()
+                        .anyRequest().hasRole("ADMIN")
+
+                        )
+
+                //.httpBasic(Customizer.withDefaults())
+                .httpBasic(httpBasic -> httpBasic.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
@@ -65,7 +81,7 @@ public class SecurityAuthentication{
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("https://localhost:3000"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);

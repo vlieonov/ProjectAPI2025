@@ -11,9 +11,10 @@ spring:
 
 resilience4j.ratelimiter:
   instances:
-    loginRateLimiter:
+    RateLimiter:
       limitForPeriod: 5
       limitRefreshPeriod: 180s
       timeoutDuration: 0
       registerHealthIndicator: true
       eventConsumerBufferSize: 100
+
