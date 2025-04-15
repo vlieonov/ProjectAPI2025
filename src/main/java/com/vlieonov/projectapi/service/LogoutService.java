@@ -23,6 +23,8 @@ public class LogoutService {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             authHeader.substring(7);
         User user = userRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+        user.setTokenIsLive(false);
+        userRepository.save(user);
         SecurityContextHolder.getContext().setAuthentication(null);
         refreshTokenRepository.deleteByUserId(user.getId());
         return ResponseEntity.ok(true);

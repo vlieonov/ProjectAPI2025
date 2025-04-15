@@ -12,7 +12,7 @@ public class User {
     private String role;
     private String email;
     private String password;
-
+    private boolean tokenIsLive;
     public User() {
     }
     public int getId() {
@@ -45,4 +45,11 @@ public class User {
     public void setRole(String role) {
         this.role = role;
     }
+    public boolean isTokenIsLive() {
+        return tokenIsLive;
+    }
+    public void setTokenIsLive(boolean tokenIsLive) {
+        this.tokenIsLive = tokenIsLive;
+    }
+
 }

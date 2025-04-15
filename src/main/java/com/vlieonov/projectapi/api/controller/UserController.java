@@ -38,6 +38,9 @@ public class UserController {
     @PostMapping("/login")
     @RateLimiter(name = "RateLimiter")
     public JwtResponse login(@RequestBody User user) {
+        User userCopy = userRepository.findByUsername(user.getName());
+        userCopy.setTokenIsLive(true);
+        userRepository.save(userCopy);
         return userService.verify(user);
     }
     @GetMapping("{id}")

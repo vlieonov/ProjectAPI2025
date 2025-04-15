@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import com.vlieonov.projectapi.api.model.User;
+import com.vlieonov.projectapi.api.repo.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -17,22 +19,25 @@ import javax.crypto.SecretKey;
 
 @Service
 public class JWTService {
+    private final UserRepository userRepository;
     private String secretKey = "";
 
-    public JWTService() throws NoSuchAlgorithmException {
+    public JWTService(UserRepository userRepository) throws NoSuchAlgorithmException {
         KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
         SecretKey sk = keyGen.generateKey();
         secretKey = Base64.getEncoder().encodeToString(sk.getEncoded());
+        this.userRepository = userRepository;
     }
 
-    public String generateToken(String user) {
+    public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("tokenIsLive", true);
         return Jwts.builder()
                 .claims()
                 .add(claims)
-                .subject(user)
+                .subject(user.getName())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60))
                 .and()
                 .signWith(getKey())
                 .compact();
@@ -55,9 +60,9 @@ public class JWTService {
         return Jwts.parser().verifyWith(getKey()).build().parseSignedClaims(token).getPayload();
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
+    public boolean validateToken(String token, UserDetails userDetails, boolean tokenIsLive) {
         final String userName = extractUserName(token);
-        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token) && tokenIsLive);
     }
 
     private boolean isTokenExpired(String token) {

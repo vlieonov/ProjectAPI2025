@@ -1,5 +1,7 @@
 package com.vlieonov.projectapi.api.filter;
 
+import com.vlieonov.projectapi.api.model.User;
+import com.vlieonov.projectapi.api.repo.UserRepository;
 import com.vlieonov.projectapi.service.CustomUserDetailsService;
 import com.vlieonov.projectapi.service.JWTService;
 import jakarta.servlet.FilterChain;
@@ -27,6 +29,8 @@ public class JWTFilter extends OncePerRequestFilter {
 
     @Autowired
     private ApplicationContext context;
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -42,7 +46,8 @@ public class JWTFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = context.getBean(CustomUserDetailsService.class).loadUserByUsername(username);
-            if(jwtService.validateToken(token, userDetails)){
+            User user = userRepository.findByUsername(username);
+            if(jwtService.validateToken(token, userDetails, user.isTokenIsLive())){
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails,
                                 null, userDetails.getAuthorities());

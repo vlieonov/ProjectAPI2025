@@ -68,7 +68,7 @@ public class UserServiceImpl implements UserService{
         if (auth.isAuthenticated()){
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getName());
             return JwtResponse.builder()
-                    .accessToken(jwtService.generateToken(user.getName()))
+                    .accessToken(jwtService.generateToken(user))
                     .token(refreshToken.getToken())
                     .build();
         }
@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService{
         }
 
         return JwtResponse.builder()
-                .accessToken(jwtService.generateToken(user.getName()))
+                .accessToken(jwtService.generateToken(user))
                 .token(refreshToken.getToken())
                 .build();
     }
