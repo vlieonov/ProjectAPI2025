@@ -17,4 +17,10 @@ resilience4j.ratelimiter:
       timeoutDuration: 0
       registerHealthIndicator: true
       eventConsumerBufferSize: 100
+    CommentRateLimiter:
+      limitForPeriod: 5
+      limitRefreshPeriod: 180s
+      timeoutDuration: 0
+      registerHealthIndicator: true
+      eventConsumerBufferSize: 100
 

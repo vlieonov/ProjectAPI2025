@@ -1,7 +1,6 @@
 package com.vlieonov.projectapi.api.secure;
 
 import com.vlieonov.projectapi.api.model.User;
-import com.vlieonov.projectapi.api.repo.UserRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,9 +10,11 @@ import java.util.Collections;
 
 public class UserPrincipal implements UserDetails {
     private User user;
+
     public UserPrincipal(User user) {
         this.user = user;
     }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
@@ -26,7 +27,7 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getName();
+        return user.getUsername();
     }
 
     @Override

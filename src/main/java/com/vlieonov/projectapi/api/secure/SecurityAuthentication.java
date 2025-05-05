@@ -25,11 +25,12 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityAuthentication{
+public class SecurityAuthentication {
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
     private JWTFilter jwtFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -51,16 +52,13 @@ public class SecurityAuthentication{
                         .requestMatchers("/user/login", "/user/register", "/user/refreshToken").permitAll()
                         .requestMatchers("/user/profile", "/user/comment", "/user/logout", "/user/updatePassword")
                         .hasAnyRole("USER", "ADMIN")
-                               // .requestMatchers("/cgi-bin/**", "/**/*.php", "/**/*.exe").denyAll()
                         .anyRequest().hasRole("ADMIN")
 
-                        )
-
-                //.httpBasic(Customizer.withDefaults())
+                )
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .cors(Customizer.withDefaults())
                 .build();
     }
@@ -77,6 +75,7 @@ public class SecurityAuthentication{
     AuthenticationManager authManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

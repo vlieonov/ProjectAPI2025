@@ -33,11 +33,10 @@ public class RefreshTokenService {
         return refreshTokenRepository.save(refreshToken);
     }
 
-    public RefreshToken IsExpired(RefreshToken token) {
+    public RefreshToken isExpired(RefreshToken token) {
         if (token.getExpireDate().isBefore(Instant.now())) {
             refreshTokenRepository.delete(token);
             throw new RuntimeException("Expired token");
-        }
-        else return token;
+        } else return token;
     }
 }

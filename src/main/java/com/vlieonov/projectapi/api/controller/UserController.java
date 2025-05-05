@@ -10,7 +10,6 @@ import com.vlieonov.projectapi.service.LogoutService;
 import com.vlieonov.projectapi.service.UserService;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,28 +34,27 @@ public class UserController {
         this.userRepository = userRepository;
         this.logoutService = logoutService;
     }
+
     @PostMapping("/login")
     @RateLimiter(name = "RateLimiter")
     public JwtResponse login(@RequestBody User user) {
-        User userCopy = userRepository.findByUsername(user.getName());
+        User userCopy = userRepository.findByUsername(user.getUsername());
         userCopy.setTokenIsLive(true);
         userRepository.save(userCopy);
         return userService.verify(user);
     }
+
     @GetMapping("{id}")
     public GetUserInfo getUser(@PathVariable("id") int id) {
         return userService.getUser(id);
     }
-    @PostMapping
-    public String createUser(@RequestBody User user) {
-        userService.createUser(user);
-        return "User created";
-    }
+
     @DeleteMapping("{id}")
     public String deleteUser(@PathVariable("id") int id) {
         userService.deleteUser(id);
         return "User deleted";
     }
+
     @PostMapping("/register")
     @RateLimiter(name = "RateLimiter")
     public String registerUser(@RequestBody User user) {
@@ -64,30 +62,35 @@ public class UserController {
         userService.createUser(user);
         return "User created";
     }
+
     @PostMapping("/comment")
-    @RateLimiter(name = "RateLimiter")
+    @RateLimiter(name = "CommentRateLimiter")
     public String addComment(@RequestBody String comment) {
         String decodedComment = URLDecoder.decode(comment, StandardCharsets.UTF_8);
         String safeComment = Jsoup.clean(decodedComment, Safelist.none());
         String encodedComment = Encode.forHtml(safeComment);
-        if(encodedComment.isEmpty()) {
+        if (encodedComment.isEmpty()) {
             throw new RuntimeException("Comment is empty");
         }
         return "Your comment: " + encodedComment;
     }
+
     @PostMapping("/refreshToken")
     public JwtResponse refreshToken(@RequestBody RefreshToken refreshToken) {
         return userService.refresh(refreshToken);
     }
+
     @GetMapping("/profile")
     public GetUserInfo getUserProfile() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return userService.profile(username);
     }
+
     @PostMapping("/logout")
-    public ResponseEntity<Boolean> logout(HttpServletRequest request, HttpServletResponse response){
-        return logoutService.logout(request, response);
+    public ResponseEntity<Boolean> logout(HttpServletRequest request) {
+        return logoutService.logout(request);
     }
+
     @PostMapping("/updatePassword")
     public String updatePassword(@RequestBody PassUpdate passUpdate) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();

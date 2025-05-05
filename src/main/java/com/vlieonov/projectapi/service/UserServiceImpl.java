@@ -3,6 +3,7 @@ package com.vlieonov.projectapi.service;
 import com.vlieonov.projectapi.api.dto.GetUserInfo;
 import com.vlieonov.projectapi.api.dto.JwtResponse;
 import com.vlieonov.projectapi.api.model.RefreshToken;
+import com.vlieonov.projectapi.api.model.Role;
 import com.vlieonov.projectapi.api.model.User;
 import com.vlieonov.projectapi.api.repo.RefreshTokenRepository;
 import com.vlieonov.projectapi.api.repo.UserRepository;
@@ -18,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.NoSuchElementException;
 
 @Service
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
     private final AuthenticationManager authManager;
     UserRepository userRepository;
     @Autowired
@@ -41,16 +42,16 @@ public class UserServiceImpl implements UserService{
     public GetUserInfo getUser(int id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found with id: " + id));
-        return new GetUserInfo(user.getId(), user.getName(), user.getRole(), user.getEmail());
+        return new GetUserInfo(user.getId(), user.getUsername(), user.getEmail());
     }
 
     @Override
     public String createUser(User user) {
-        if(userRepository.findByUsername(user.getName()) != null)
+        if (userRepository.findByUsername(user.getUsername()) != null)
             throw new IllegalArgumentException("Username already exists");
         emailCheck(user.getEmail());
         passwordCheck(user.getPassword());
-        user.setRole("USER");
+        user.setRole(Role.USER);
         user.setPassword(encoder.encode(user.getPassword()));
         userRepository.save(user);
         return "User created";
@@ -61,18 +62,18 @@ public class UserServiceImpl implements UserService{
         userRepository.deleteById(id);
         return "Success";
     }
+
     @Override
     public JwtResponse verify(User user) {
         Authentication auth = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getName(), user.getPassword()));
-        if (auth.isAuthenticated()){
-            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getName());
+                new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+        if (auth.isAuthenticated()) {
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getUsername());
             return JwtResponse.builder()
                     .accessToken(jwtService.generateToken(user))
                     .token(refreshToken.getToken())
                     .build();
-        }
-        else throw new BadCredentialsException("Invalid username or password");
+        } else throw new BadCredentialsException("Invalid username or password");
     }
 
     @Override
@@ -80,7 +81,7 @@ public class UserServiceImpl implements UserService{
         RefreshToken storedToken = refreshTokenRepository.findByToken(refreshToken.getToken())
                 .orElseThrow(() -> new BadCredentialsException("Invalid refresh token"));
 
-        refreshTokenService.IsExpired(storedToken);
+        refreshTokenService.isExpired(storedToken);
 
         User user = storedToken.getUser();
         if (user == null) {
@@ -99,17 +100,17 @@ public class UserServiceImpl implements UserService{
         if (user == null) {
             throw new NoSuchElementException("User not found");
         }
-        return new GetUserInfo(user.getId(), user.getName(), user.getRole(), user.getEmail());
+        return new GetUserInfo(user.getId(), user.getUsername(), user.getEmail());
     }
 
     @Override
     public void emailCheck(String email) {
-        if(!email.contains("@")) throw new BadCredentialsException("Invalid email");
+        if (!email.contains("@")) throw new BadCredentialsException("Invalid email");
     }
 
     @Override
     public void passwordCheck(String password) {
-        if(password.length() < 8) throw new BadCredentialsException("Password must be at least 8 characters");
+        if (password.length() < 8) throw new BadCredentialsException("Password must be at least 8 characters");
         String specialChar = ".*[~!@#$%^&*()\\-_=+\\[{\\]}|;:<>,./?].*";
         if (!password.matches(specialChar)) throw new BadCredentialsException("Password does not match");
     }
@@ -117,11 +118,10 @@ public class UserServiceImpl implements UserService{
     @Override
     public void updatePassword(String username, String oldPassword, String newPassword) {
         User user = userRepository.findByUsername(username);
-        if(encoder.matches(oldPassword, user.getPassword())) {
+        if (encoder.matches(oldPassword, user.getPassword())) {
             passwordCheck(newPassword);
             user.setPassword(encoder.encode(newPassword));
             userRepository.save(user);
-        }
-        else throw new BadCredentialsException("Password does not match");
+        } else throw new BadCredentialsException("Password does not match");
     }
 }
